@@ -1,5 +1,4 @@
 {
-  "_发版说明": "每次发版三步：1) 用 scripts/release.sh 一条命令自动完成以下全部，或手动：把新 APK 覆盖到 app.apk；2) 改本文件：version=版本号必须比上一版大（App 靠它判断弹不弹窗）、versionCode=整数每次+1、size=安装包大小随便写个近似值仅用于页面展示、notes=更新说明一行一条、force=true 表示强制更新用户点「稍后」也躲不过、history=历史版本列表页面底部展示；3) git add -A && git commit -m 'release x.x.x' && git push。推送后 EdgeOne 自动重新部署，1 分钟左右生效，用户打开 App 就会收到提示。",
   "version": "1.0.8",
   "versionCode": 9,
   "publishedAt": "2026-10-20",
@@ -16,5 +15,21 @@
     { "version": "1.0.6", "date": "2026-10-20" },
     { "version": "1.0.5", "date": "2026-10-20" },
     { "version": "1.0.4", "date": "2026-10-20" }
-  ]
+  ],
+  "_说明": {
+    "version": "版本号，必须比上一版大（App 靠它判断要不要弹窗）",
+    "versionCode": "整数，每次 +1",
+    "publishedAt": "发布日期，格式 2026-10-20",
+    "size": "安装包大小，随便写个近似值，只用于页面展示",
+    "force": "true 表示强制更新，用户点「稍后」也躲不过",
+    "url": "安装包地址，一般就是 app.apk",
+    "notes": "更新说明，一行一条",
+    "history": "历史版本列表，页面底部展示",
+    "_发版流程": [
+      "1. 把新 APK 覆盖到 app.apk（或者直接用 scripts/release.sh 一条命令发版）",
+      "2. 改 version.json：version 变大、versionCode +1、更新 notes",
+      "3. git add -A && git commit -m \"release x.x.x\" && git push",
+      "推送后 EdgeOne 会自动重新部署，1 分钟左右生效，用户打开 App 就会收到提示。"
+    ]
+  }
 }
