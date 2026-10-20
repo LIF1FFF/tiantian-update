@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="天天货运记账">
-<meta name="page-ver" content="1.0.14c">
+<meta name="page-ver" content="1.0.14d">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -446,10 +446,8 @@ html[data-theme="dark"] .tabbar{background:rgba(20,23,28,.94)}
 .grid4 .cell span{font-size:11.5px;color:var(--text3)}
 
 /* ---------- 设置页 ---------- */
-.about-hero{text-align:center;padding:24px 0 4px}
-.about-hero img{width:78px;height:78px;border-radius:20px;box-shadow:0 10px 24px rgba(var(--brand3-rgb),.26)}
-.about-hero h2{margin:13px 0 3px;font-size:18px;font-weight:700}
-.about-hero p{margin:0;font-size:12.5px;color:var(--text3)}
+#viewSettings{padding-top:10px}
+.ver-foot{text-align:center;font-size:12px;color:var(--text3);padding:18px 0 2px}
 .card p{margin:0;font-size:13.5px;line-height:1.75;color:var(--text2)}
 .card p+p{margin-top:8px}
 .sub-head{
@@ -470,7 +468,7 @@ html[data-theme="dark"] .tabbar{background:rgba(20,23,28,.94)}
 .abtn.danger{color:#e5484d;border-color:rgba(229,72,77,.32);background:rgba(229,72,77,.06)}
 .about-foot{
   text-align:center;font-size:11.5px;color:var(--text3);
-  padding:20px 0 8px;line-height:1.9;
+  padding:6px 0 8px;line-height:1.9;
 }
 .about-foot a{color:var(--text3)}
 
@@ -599,13 +597,6 @@ html[data-theme="dark"] .tabbar{background:rgba(20,23,28,.94)}
   </section>
 
   <section id="viewSettings" hidden>
-    <div class="about-hero">
-      <!-- 图标内联为 data URI：App 内页面可能从 /hotfix/ 加载，避免相对路径 404 导致破图 -->
-      <img src="data:image/png;base64,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" width="78" height="78" alt="应用图标">
-      <h2>天天货运记账</h2>
-      <p>版本 <span id="verText">1.0.0</span> · 本地记账 · 不联网</p>
-    </div>
-
     <div class="card">
       <div class="card-head">外观 <span>切换立刻生效</span></div>
       <div class="seg" id="themeSeg">
@@ -648,6 +639,8 @@ html[data-theme="dark"] .tabbar{background:rgba(20,23,28,.94)}
         <button class="abtn danger" id="clearBtn">清空记录</button>
       </div>
     </div>
+
+    <div class="ver-foot">版本 <span id="verText">1.0.14</span> · 本地记账 · 不联网</div>
 
     <div class="about-foot">
       © 2026 FFF. All Rights Reserved.
