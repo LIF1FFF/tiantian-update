@@ -4,8 +4,11 @@
 
 ## 访问地址
 
-- 下载页：https://lif1fff.github.io/tiantian-update/
-- 版本信息：https://lif1fff.github.io/tiantian-update/version.json
+- 下载页：https://jz.ffoo.top/
+- 版本信息：https://jz.ffoo.top/version.json
+- 安装包：https://jz.ffoo.top/app.apk
+
+托管在腾讯 EdgeOne Pages：推送 `main` 分支后自动重新部署，约 1 分钟生效。
 
 ## 发新版（三步）
 
@@ -19,7 +22,7 @@
    - `history`：历史版本列表，页面底部展示
 3. `git add -A && git commit -m "release 1.0.5" && git push`
 
-推送后 GitHub Pages 会自动重新发布，1 分钟左右生效，用户打开 App 就会收到提示。
+推送后 EdgeOne 会自动重新部署，1 分钟左右生效，用户打开 App 就会收到提示。
 
 ## 注意
 

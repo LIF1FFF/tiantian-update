@@ -1,19 +1,19 @@
 {
-  "version": "1.0.7",
-  "versionCode": 8,
+  "version": "1.0.8",
+  "versionCode": 9,
   "publishedAt": "2026-10-20",
-  "size": "1544 KB",
+  "size": "1543 KB",
   "force": false,
   "url": "app.apk",
   "notes": [
-    "修复卡顿：更新检查不再阻塞界面",
-    "改为打开 App 时检查一次，切回前台不再重复请求"
+    "更新源换到腾讯 EdgeOne（jz.ffoo.top），国内下载更快更稳",
+    "修复：更新检查不再阻塞界面（上一版已改，本版沿用）"
   ],
   "history": [
+    { "version": "1.0.8", "date": "2026-10-20" },
     { "version": "1.0.7", "date": "2026-10-20" },
     { "version": "1.0.6", "date": "2026-10-20" },
     { "version": "1.0.5", "date": "2026-10-20" },
-    { "version": "1.0.4", "date": "2026-10-20" },
-    { "version": "1.0.3", "date": "2026-10-20" }
+    { "version": "1.0.4", "date": "2026-10-20" }
   ]
 }
