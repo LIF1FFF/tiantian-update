@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="天天货运记账">
-<meta name="page-ver" content="1.0.16">
+<meta name="page-ver" content="1.0.17">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -310,15 +310,15 @@ html[data-theme="dark"] .calc{background:rgba(var(--brand2-rgb),.1)}
 .ab-mask.on{opacity:1;pointer-events:auto}
 .ab-box{
   position:fixed;left:50%;top:50%;z-index:93;
-  width:calc(100% - 44px);max-width:400px;max-height:78vh;
+  width:calc(100% - 44px);max-width:400px;max-height:82vh;
   overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   background:var(--card);border-radius:20px;box-shadow:var(--shadow-lg);
-  padding:16px 18px 14px;
+  padding:14px 16px 12px;
   opacity:0;pointer-events:none;transform:translate(-50%,-46%) scale(.96);
   transition:opacity .2s,transform .24s cubic-bezier(.32,.72,0,1);
 }
 .ab-box.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
-.ab-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ab-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .ab-head h2{margin:0;font-size:16px;font-weight:750}
 .ab-head .v{margin-left:auto;font-size:11.5px;color:var(--text3);font-weight:600}
 .ab-close{
@@ -327,12 +327,14 @@ html[data-theme="dark"] .calc{background:rgba(var(--brand2-rgb),.1)}
   font-size:17px;line-height:1;font-family:inherit;cursor:pointer;
 }
 .ab-close:active{background:rgba(120,128,140,.22)}
-.ab-body p{margin:0;font-size:13.5px;line-height:1.75;color:var(--text2)}
-.ab-body .sub-head{margin-top:13px}
-.ab-body .sub-head:first-child{margin-top:0}
-.ab-body .tip{font-size:12.5px;color:var(--text3)}
+.ab-body p{margin:0;font-size:13px;line-height:1.58;color:var(--text2)}
+.ab-body .sub-head{margin-top:10px;margin-bottom:6px;padding-top:9px}
+.ab-body .sub-head:first-child{margin-top:0;padding-top:0;border-top:0}
+.ab-body .steps{line-height:1.5}
+.ab-body .steps li{padding:2px 0;font-size:12.5px}
+.ab-body .tip{font-size:12px;line-height:1.62;color:var(--text3)}
 .ab-ok{
-  width:100%;margin-top:14px;height:44px;border:0;border-radius:13px;
+  width:100%;margin-top:12px;height:42px;border:0;border-radius:13px;
   background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;
   font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;
 }
