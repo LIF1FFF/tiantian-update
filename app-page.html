@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#ff6a00" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14161a" media="(prefers-color-scheme: dark)">
+<title>天天货运记账</title>
+<meta name="description" content="货拉拉、运满满司机记账：记每趟公里数、运费、额外费用和成本，自动算出每公里净赚多少。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="天天货运记账">
+<meta name="page-ver" content="2026102101">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<script>
+/* 运行环境开关：?native=1 由安卓外壳注入，用于状态栏 / 底栏安全区适配 */
+(function () {
+  var d = document.documentElement, q;
+  try { q = new URLSearchParams(location.search); } catch (e) { q = null; }
+  if (q && q.get('native') === '1') d.setAttribute('data-native', '1');
+})();
+</script>
+<style>
+:root{
+  --bg:#f2f3f6; --card:#ffffff; --text:#14161a; --text2:#646b78; --text3:#9aa1ad;
+  --line:#e8eaee; --brand:#ff6a00; --brand2:#ff8a3d; --brand3:#f04e00;
+  --brand-rgb:255,106,0; --brand2-rgb:255,138,61; --brand3-rgb:240,78,0;
+  --hl:#ff6a00; --ym:#2f6bff; --sh:#12a594;
+  --shadow:0 6px 18px rgba(20,22,26,.07); --shadow-lg:0 14px 34px rgba(20,22,26,.14);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0e1013; --card:#191c21; --text:#f2f3f5; --text2:#a2a9b4; --text3:#767d88;
+         --line:#262a31; --shadow:0 6px 18px rgba(0,0,0,.4); --shadow-lg:0 14px 34px rgba(0,0,0,.55); }
+}
+html[data-theme="light"]{ --bg:#f2f3f6; --card:#ffffff; --text:#14161a; --text2:#646b78; --text3:#9aa1ad;
+  --line:#e8eaee; --shadow:0 6px 18px rgba(20,22,26,.07); --shadow-lg:0 14px 34px rgba(20,22,26,.14); }
+html[data-theme="dark"]{ --bg:#0e1013; --card:#191c21; --text:#f2f3f5; --text2:#a2a9b4; --text3:#767d88;
+  --line:#262a31; --shadow:0 6px 18px rgba(0,0,0,.4); --shadow-lg:0 14px 34px rgba(0,0,0,.55); }
+
+/* ---------- 主题色（设置页可切换） ---------- */
+html[data-accent="orange"]{ --brand:#ff6a00; --brand2:#ff8a3d; --brand3:#f04e00;
+  --brand-rgb:255,106,0; --brand2-rgb:255,138,61; --brand3-rgb:240,78,0; }
+html[data-accent="blue"]{ --brand:#2f6bff; --brand2:#5b8cff; --brand3:#1a4fd8;
+  --brand-rgb:47,107,255; --brand2-rgb:91,140,255; --brand3-rgb:26,79,216; }
+html[data-accent="green"]{ --brand:#0f9d76; --brand2:#34bd98; --brand3:#0a7a5b;
+  --brand-rgb:15,157,118; --brand2-rgb:52,189,152; --brand3-rgb:10,122,91; }
+html[data-accent="purple"]{ --brand:#7c5cff; --brand2:#9c82ff; --brand3:#5b3ee0;
+  --brand-rgb:124,92,255; --brand2-rgb:156,130,255; --brand3-rgb:91,62,224; }
+html[data-accent="pink"]{ --brand:#f0417e; --brand2:#ff6f9f; --brand3:#cc2760;
+  --brand-rgb:240,65,126; --brand2-rgb:255,111,159; --brand3-rgb:204,39,96; }
+html[data-accent="cyan"]{ --brand:#0a9bbd; --brand2:#31bdd8; --brand3:#067a96;
+  --brand-rgb:10,155,189; --brand2-rgb:49,189,216; --brand3-rgb:6,122,150; }
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:auto}
+body{
+  min-height:100%;
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:16px;line-height:1.4;
+  padding-bottom:calc(156px + var(--sab, env(safe-area-inset-bottom)));
+  -webkit-font-smoothing:subpixel-antialiased;
+  overscroll-behavior-y:contain;
+}
+.wrap{max-width:520px;margin:0 auto;padding:0 16px}
+
+/* ---------- 顶栏 ---------- */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:calc(14px + var(--sat, env(safe-area-inset-top))) 0 12px;
+}
+.brand{min-width:0}
+.brand b{display:block;font-size:17.5px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
+.brand span{display:block;font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ---------- 汇总卡 ---------- */
+.summary{
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,var(--brand2) 0%,var(--brand) 52%,var(--brand3) 100%);
+  color:#fff;border-radius:20px;padding:16px 18px 14px;
+  box-shadow:0 12px 26px rgba(var(--brand3-rgb),.28);
+}
+.summary::after{
+  content:"";position:absolute;right:-44px;top:-56px;width:170px;height:170px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.26),rgba(255,255,255,0) 68%);
+}
+.sum-label{font-size:12.5px;opacity:.92;letter-spacing:.02em;position:relative;z-index:1}
+.sum-value{display:flex;align-items:baseline;gap:3px;margin:2px 0 8px;font-variant-numeric:tabular-nums;position:relative;z-index:1}
+.sum-value i{font-style:normal;font-size:20px;font-weight:600;opacity:.95}
+.sum-value b{font-size:40px;font-weight:700;line-height:1.05;letter-spacing:-.01em}
+.sum-value em{font-style:normal;font-size:13px;opacity:.85;margin-left:2px}
+.sum-sub{font-size:12px;opacity:.88;margin:0 0 11px;position:relative;z-index:1}
+.sum-sub b{font-weight:650}
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;position:relative;z-index:1}
+.sum-grid div{background:rgba(255,255,255,.16);border-radius:12px;padding:7px 10px;backdrop-filter:blur(4px)}
+.sum-grid b{display:block;font-size:16px;font-weight:650;font-variant-numeric:tabular-nums}
+.sum-grid span{font-size:11px;opacity:.85}
+
+/* ---------- 时间筛选 ---------- */
+.tabs{display:flex;gap:6px;margin:14px 0 0;background:var(--card);padding:5px;border-radius:14px;box-shadow:var(--shadow)}
+.tabs button{
+  flex:1;border:0;background:transparent;color:var(--text2);font-size:13.5px;font-weight:600;
+  padding:8px 4px;border-radius:10px;cursor:pointer;transition:.16s;font-family:inherit;
+}
+.tabs button.on{background:var(--brand);color:#fff;box-shadow:0 4px 12px rgba(var(--brand-rgb),.3)}
+
+/* ---------- 平台筛选 ---------- */
+.pf-tabs{display:flex;gap:7px;margin:10px 0 2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:1px}
+.pf-tabs::-webkit-scrollbar{display:none}
+.pf-tabs button{
+  flex:none;border:1px solid var(--line);background:var(--card);color:var(--text2);
+  font-size:13px;font-weight:600;font-family:inherit;padding:7px 14px;border-radius:99px;
+  cursor:pointer;transition:.16s;white-space:nowrap;
+}
+.pf-tabs button.on{background:rgba(var(--brand-rgb),.1);border-color:var(--brand);color:var(--brand);font-weight:700}
+html[data-theme="dark"] .pf-tabs button.on{background:rgba(var(--brand2-rgb),.16)}
+
+/* ---------- 列表 ---------- */
+.day-head{font-size:12px;color:var(--text3);margin:18px 2px 8px;display:flex;justify-content:space-between}
+.day-head span:last-child{font-variant-numeric:tabular-nums}
+.item{
+  background:var(--card);border-radius:16px;padding:13px 15px;margin-bottom:9px;
+  box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;
+  transition:transform .14s;cursor:pointer;
+}
+.item:active{transform:scale(.985)}
+.item-main{flex:1;min-width:0}
+.item-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fee{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em;display:flex;align-items:baseline}
+.fee i{font-style:normal;font-size:14px;font-weight:600;margin-right:1px}
+.pf{
+  font-size:10.5px;font-weight:700;padding:1.5px 6px;border-radius:6px;white-space:nowrap;
+  background:rgba(120,128,140,.12);color:var(--text2);
+}
+.pf[data-p="货拉拉"]{background:rgba(255,106,0,.12);color:#ff6a00}
+.pf[data-p="运满满"]{background:rgba(47,107,255,.12);color:#2f6bff}
+.pf[data-p="其他"]{background:rgba(18,165,148,.12);color:#12a594}
+html[data-theme="dark"] .pf[data-p="货拉拉"]{background:rgba(255,138,61,.18);color:#ff9a52}
+html[data-theme="dark"] .pf[data-p="运满满"]{background:rgba(86,133,255,.2);color:#7ea4ff}
+html[data-theme="dark"] .pf[data-p="其他"]{background:rgba(26,190,171,.18);color:#3fd3bf}
+.extra-tag{
+  font-size:11.5px;font-weight:650;color:var(--text2);background:rgba(120,128,140,.1);
+  border-radius:6px;padding:1.5px 6px;font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.extra-tag.plus{color:var(--brand);background:rgba(var(--brand-rgb),.12)}
+html[data-theme="dark"] .extra-tag.plus{background:rgba(var(--brand2-rgb),.16)}
+.extra-tag.minus{color:#e5484d;background:rgba(229,72,77,.1)}
+html[data-theme="dark"] .extra-tag.minus{color:#ff7b7f;background:rgba(229,72,77,.18)}
+.item-meta{display:flex;align-items:center;gap:7px;margin-top:4px;font-size:12px;color:var(--text3);min-width:0}
+.item-meta .dot{width:3px;height:3px;border-radius:50%;background:currentColor;flex:none}
+.item-meta .note{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-side{flex:none;text-align:right}
+.km{font-size:13px;color:var(--text2);font-variant-numeric:tabular-nums}
+.unit{
+  display:inline-block;margin-top:5px;font-size:12px;font-weight:650;color:var(--brand);
+  background:rgba(var(--brand-rgb),.1);border-radius:7px;padding:2.5px 7px;font-variant-numeric:tabular-nums;
+}
+html[data-theme="dark"] .unit{background:rgba(var(--brand2-rgb),.15)}
+
+.empty{text-align:center;padding:56px 20px 30px;color:var(--text3)}
+.empty svg{opacity:.55;margin-bottom:14px}
+.empty p{margin:0;font-size:14px}
+.empty small{display:block;margin-top:6px;font-size:12.5px;color:var(--text3);opacity:.8}
+
+/* ---------- 悬浮按钮 ---------- */
+.fab{
+  position:fixed;right:calc(50% - 260px + 18px);bottom:calc(82px + var(--sab, env(safe-area-inset-bottom)));
+  width:62px;height:62px;border-radius:22px;border:0;cursor:pointer;
+  background:linear-gradient(135deg,var(--brand2),var(--brand));color:#fff;
+  font-size:32px;font-weight:300;line-height:1;
+  display:grid;place-items:center;
+  box-shadow:0 12px 28px rgba(var(--brand3-rgb),.42);
+  transition:transform .16s cubic-bezier(.34,1.56,.64,1);z-index:60;
+}
+.fab:active{transform:scale(.9)}
+@media (max-width:556px){ .fab{right:18px} }
+
+/* ---------- 记账弹层 ---------- */
+.mask{
+  position:fixed;inset:0;background:rgba(10,12,16,.5);backdrop-filter:blur(2px);
+  opacity:0;pointer-events:none;transition:opacity .22s;z-index:70;
+}
+.mask.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:80;
+  background:var(--card);border-radius:26px 26px 0 0;
+  padding:8px 18px calc(20px + var(--sab, env(safe-area-inset-bottom)));
+  box-shadow:var(--shadow-lg);
+  transform:translateY(102%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+  max-width:520px;margin:0 auto;
+  max-height:94vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+.sheet.on{transform:translateY(0)}
+.handle{width:38px;height:4px;border-radius:99px;background:var(--line);margin:6px auto 12px}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.sheet-head h2{margin:0;font-size:17px;font-weight:700}
+.sheet-head .del{
+  border:0;background:transparent;color:#e5484d;font-size:13.5px;font-weight:600;
+  font-family:inherit;padding:6px 2px;cursor:pointer;
+}
+.field{margin-bottom:13px}
+.field > label{display:block;font-size:12.5px;color:var(--text2);margin-bottom:6px;font-weight:600}
+.opt{font-weight:500;color:var(--text3)}
+.input-wrap{
+  display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--line);
+  border-radius:14px;padding:0 14px;height:58px;transition:border-color .16s,background .16s;
+}
+.input-wrap.slim{height:50px}
+.input-wrap:focus-within{border-color:var(--brand);background:var(--card)}
+.input-wrap .pre,.input-wrap .suf{font-size:15px;color:var(--text3);font-weight:600;flex:none}
+.input-wrap input{
+  flex:1;min-width:0;border:0;background:transparent;color:var(--text);
+  font-size:26px;font-weight:700;font-family:inherit;font-variant-numeric:tabular-nums;
+  outline:none;padding:0;text-align:right;
+}
+.input-wrap.slim input{font-size:20px}
+.input-wrap input::placeholder{font-weight:500;color:var(--text3);opacity:.6;font-size:20px}
+.input-wrap.err{border-color:#e5484d}
+
+/* 平台选择 */
+.plat-row{display:flex;gap:8px}
+.plat{
+  flex:1;height:44px;border-radius:13px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--text2);font-size:14px;font-weight:650;
+  font-family:inherit;cursor:pointer;transition:.16s;
+}
+.plat[data-p="货拉拉"].on{background:rgba(255,106,0,.1);border-color:#ff6a00;color:#ff6a00}
+.plat[data-p="运满满"].on{background:rgba(47,107,255,.1);border-color:#2f6bff;color:#2f6bff}
+.plat[data-p="其他"].on{background:rgba(18,165,148,.1);border-color:#12a594;color:#12a594}
+html[data-theme="dark"] .plat[data-p="货拉拉"].on{background:rgba(255,138,61,.16);color:#ff9a52}
+html[data-theme="dark"] .plat[data-p="运满满"].on{background:rgba(86,133,255,.18);color:#7ea4ff}
+html[data-theme="dark"] .plat[data-p="其他"].on{background:rgba(26,190,171,.16);color:#3fd3bf}
+
+/* 额外费用 */
+.exp-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.exp-head label{font-size:12.5px;color:var(--text2);font-weight:600}
+.exp-sum{font-size:12.5px;font-weight:700;color:var(--brand);font-variant-numeric:tabular-nums}
+.exp-sum.zero{color:var(--text3);font-weight:600}
+
+/* 额外费用加减方向 */
+.dir-row{display:flex;gap:8px;margin-top:8px}
+.dir{
+  flex:1;height:54px;border-radius:13px;border:1.5px solid var(--line);background:var(--bg);
+  color:var(--text2);font-family:inherit;cursor:pointer;transition:.16s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+}
+.dir b{font-size:14.5px;font-weight:700;line-height:1.1}
+.dir small{font-size:10.5px;font-weight:500;opacity:.8;line-height:1.1}
+.dir[data-d="in"].on{background:rgba(var(--brand-rgb),.1);border-color:var(--brand);color:var(--brand)}
+.dir[data-d="out"].on{background:rgba(229,72,77,.1);border-color:#e5484d;color:#e5484d}
+html[data-theme="dark"] .dir[data-d="in"].on{background:rgba(var(--brand2-rgb),.16);color:var(--brand2)}
+html[data-theme="dark"] .dir[data-d="out"].on{background:rgba(229,72,77,.18);color:#ff7b7f}
+.exp-sum.out{color:#e5484d}
+html[data-theme="dark"] .exp-sum.out{color:#ff7b7f}
+
+/* 计算区 */
+.calc{
+  background:rgba(var(--brand-rgb),.08);border-radius:14px;padding:11px 14px;margin:2px 0 16px;
+}
+html[data-theme="dark"] .calc{background:rgba(var(--brand2-rgb),.1)}
+.calc-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.calc-row+.calc-row{margin-top:7px;padding-top:7px;border-top:1px dashed rgba(var(--brand-rgb),.22)}
+.calc .lbl{font-size:12.5px;color:var(--text2)}
+.calc .lbl em{font-style:normal;color:var(--text3);font-size:11.5px}
+.calc .val{font-size:23px;font-weight:700;color:var(--brand);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.calc .val small{font-size:12.5px;font-weight:600;margin-left:2px}
+.calc .lbl2{font-size:12.5px;color:var(--text2)}
+.calc .lbl2 b{font-weight:600;color:var(--text3)}
+.calc .val2{font-size:15px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.calc .val2.minus{color:#e5484d}
+.calc .val2.net{color:var(--brand)}
+.note-input{
+  width:100%;height:46px;border:1.5px solid var(--line);background:var(--bg);border-radius:13px;
+  padding:0 14px;font-size:15px;font-family:inherit;color:var(--text);outline:none;
+}
+.note-input:focus{border-color:var(--brand);background:var(--card)}
+.save{
+  width:100%;height:56px;border:0;border-radius:16px;cursor:pointer;
+  background:linear-gradient(135deg,var(--brand2),var(--brand));color:#fff;
+  font-size:17px;font-weight:700;font-family:inherit;letter-spacing:.02em;
+  box-shadow:0 10px 22px rgba(var(--brand3-rgb),.34);transition:transform .14s;
+}
+.save:active{transform:scale(.975)}
+
+/* ---------- 轻提示 ---------- */
+.toast{
+  position:fixed;left:50%;bottom:calc(150px + var(--sab, env(safe-area-inset-bottom)));
+  transform:translate(-50%,14px);z-index:90;
+  background:rgba(24,26,31,.94);color:#fff;font-size:13.5px;
+  padding:9px 16px;border-radius:99px;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;white-space:nowrap;max-width:88vw;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- 关于应用弹窗 ---------- */
+.ab-mask{
+  position:fixed;inset:0;background:rgba(10,12,16,.5);backdrop-filter:blur(3px);
+  opacity:0;pointer-events:none;transition:opacity .2s;z-index:92;
+}
+.ab-mask.on{opacity:1;pointer-events:auto}
+.ab-box{
+  position:fixed;left:50%;top:50%;z-index:93;
+  width:calc(100% - 44px);max-width:400px;max-height:78vh;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  background:var(--card);border-radius:20px;box-shadow:var(--shadow-lg);
+  padding:16px 18px 14px;
+  opacity:0;pointer-events:none;transform:translate(-50%,-46%) scale(.96);
+  transition:opacity .2s,transform .24s cubic-bezier(.32,.72,0,1);
+}
+.ab-box.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.ab-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ab-head h2{margin:0;font-size:16px;font-weight:750}
+.ab-head .v{margin-left:auto;font-size:11.5px;color:var(--text3);font-weight:600}
+.ab-close{
+  width:28px;height:28px;flex:none;border:0;border-radius:50%;
+  background:rgba(120,128,140,.12);color:var(--text2);
+  font-size:17px;line-height:1;font-family:inherit;cursor:pointer;
+}
+.ab-close:active{background:rgba(120,128,140,.22)}
+.ab-body p{margin:0;font-size:13.5px;line-height:1.75;color:var(--text2)}
+.ab-body .sub-head{margin-top:13px}
+.ab-body .sub-head:first-child{margin-top:0}
+.ab-body .tip{font-size:12.5px;color:var(--text3)}
+.ab-ok{
+  width:100%;margin-top:14px;height:44px;border:0;border-radius:13px;
+  background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;
+  font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;
+}
+.ab-ok:active{transform:scale(.985)}
+.imp-acts{display:flex;gap:9px;margin-top:14px}
+.imp-acts .abtn{flex:1;margin-bottom:0;height:46px;font-size:14.5px}
+.imp-acts .ab-ok{flex:1.2;margin-top:0;height:46px;font-size:14.5px}
+.upd-notes{margin:6px 0 0}
+.upd-notes li{font-size:13.5px}
+
+/* ---------- 确认框（替代系统 confirm） ---------- */
+.cf-mask{
+  position:fixed;inset:0;background:rgba(10,12,16,.5);backdrop-filter:blur(3px);
+  opacity:0;pointer-events:none;transition:opacity .18s;z-index:96;
+}
+.cf-mask.on{opacity:1;pointer-events:auto}
+.cf-box{
+  position:fixed;left:50%;top:50%;z-index:97;
+  width:calc(100% - 64px);max-width:320px;
+  background:var(--card);border-radius:20px;box-shadow:var(--shadow-lg);
+  padding:20px 18px 14px;text-align:center;
+  opacity:0;pointer-events:none;transform:translate(-50%,-46%) scale(.94);
+  transition:opacity .18s,transform .22s cubic-bezier(.32,.72,0,1);
+}
+.cf-box.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.cf-msg{margin:0 0 16px;font-size:14.5px;line-height:1.65;color:var(--text);font-weight:600}
+.cf-acts{display:flex;gap:9px}
+.cf-acts button{
+  flex:1;height:44px;border:0;border-radius:13px;font-size:15px;font-weight:700;
+  font-family:inherit;cursor:pointer;
+}
+.cf-no{background:rgba(120,128,140,.14);color:var(--text2)}
+.cf-no:active{background:rgba(120,128,140,.24)}
+.cf-yes{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
+.cf-yes.danger{background:linear-gradient(135deg,#ff5a52,#e5342c)}
+.cf-yes:active,.cf-no:active{transform:scale(.98)}
+
+/* 更多 / 数据 两块并排（各自独立卡片） */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;margin-top:12px}
+.duo .card{margin-top:0;padding:13px 13px}
+.duo-col{min-width:0}
+.duo .link-row{font-size:13.5px;padding:11px 0}
+.duo .abtn{height:42px;font-size:13.5px;border-radius:12px;margin-bottom:8px;padding:0 4px}
+@media (max-width:359px){.duo{grid-template-columns:1fr}}
+
+/* ---------- 底部导航 ---------- */
+.tabbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:65;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);
+  display:flex;padding:5px 0 calc(5px + var(--sab, env(safe-area-inset-bottom)));
+  max-width:520px;margin:0 auto;
+}
+html[data-theme="dark"] .tabbar{background:rgba(20,23,28,.94)}
+.tabbar button{
+  flex:1;border:0;background:transparent;color:var(--text3);
+  font-family:inherit;font-size:10.5px;font-weight:600;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0;
+  transition:color .16s;
+}
+.tabbar button svg{
+  width:22px;height:22px;stroke:currentColor;fill:none;
+  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+}
+.tabbar button.on{color:var(--brand)}
+
+/* ---------- 统计页 ---------- */
+.stat-hero{
+  background:var(--card);border-radius:18px;padding:16px 18px;
+  box-shadow:var(--shadow);margin-top:12px;
+}
+.stat-hero .h-label{font-size:12.5px;color:var(--text2);font-weight:600}
+.stat-hero .h-big{
+  font-size:33px;font-weight:700;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;margin:1px 0 5px;display:flex;align-items:baseline;gap:2px;
+}
+.stat-hero .h-big i{font-style:normal;font-size:18px;font-weight:600;color:var(--text2)}
+.stat-hero .h-sub{font-size:12px;color:var(--text3);display:flex;flex-wrap:wrap;gap:4px 10px}
+.stat-hero .h-sub b{font-weight:650;color:var(--text2)}
+
+.card{background:var(--card);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow);margin-top:12px}
+.card-head{
+  font-size:13.5px;font-weight:700;margin-bottom:11px;
+  display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+}
+.card-head span{font-size:11.5px;color:var(--text3);font-weight:500}
+
+.bars{display:flex;align-items:flex-end;gap:6px;height:112px}
+.bars .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;height:100%}
+.bars .col i{
+  font-style:normal;font-size:9.5px;color:var(--text3);font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.bars .col .bar{
+  width:100%;max-width:26px;border-radius:6px 6px 3px 3px;
+  background:linear-gradient(180deg,var(--brand2),var(--brand));
+  min-height:3px;transition:height .45s cubic-bezier(.32,.72,0,1);
+}
+.bars .col.zero .bar{background:var(--line)}
+.bars .col em{
+  font-style:normal;font-size:10.5px;color:var(--text3);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+
+.pbar{margin-bottom:11px}
+.pbar:last-child{margin-bottom:0}
+.pbar-top{display:flex;justify-content:space-between;align-items:baseline;font-size:12.5px;margin-bottom:5px}
+.pbar-top b{font-weight:650}
+.pbar-top span{color:var(--text3);font-variant-numeric:tabular-nums;font-size:11.5px}
+.pbar-track{height:8px;border-radius:99px;background:rgba(120,128,140,.12);overflow:hidden}
+.pbar-fill{height:100%;border-radius:99px;transition:width .5s cubic-bezier(.32,.72,0,1)}
+
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.grid4 .cell{background:var(--card);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow)}
+.grid4 .cell b{display:block;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.grid4 .cell span{font-size:11.5px;color:var(--text3)}
+
+/* ---------- 设置页 ---------- */
+.about-hero{text-align:center;padding:24px 0 4px}
+.about-hero img{width:78px;height:78px;border-radius:20px;box-shadow:0 10px 24px rgba(var(--brand3-rgb),.26)}
+.about-hero h2{margin:13px 0 3px;font-size:18px;font-weight:700}
+.about-hero p{margin:0;font-size:12.5px;color:var(--text3)}
+.card p{margin:0;font-size:13.5px;line-height:1.75;color:var(--text2)}
+.card p+p{margin-top:8px}
+.sub-head{
+  font-size:12px;font-weight:700;color:var(--text3);letter-spacing:.06em;
+  margin:14px 0 7px;padding-top:12px;border-top:1px solid var(--line);
+}
+.steps{margin:0;padding-left:17px;font-size:13.5px;line-height:1.7;color:var(--text2)}
+.steps li{padding:3px 0}
+.steps b{color:var(--text);font-weight:650}
+.card p.tip{margin-top:0;font-size:13px;color:var(--text3)}
+.abtn{
+  width:100%;height:50px;border-radius:14px;border:1.5px solid var(--line);
+  background:var(--bg);color:var(--text);font-size:15px;font-weight:600;
+  font-family:inherit;cursor:pointer;margin-bottom:9px;transition:.15s;
+}
+.abtn:active{transform:scale(.985)}
+.abtn:last-child{margin-bottom:0}
+.abtn.danger{color:#e5484d;border-color:rgba(229,72,77,.32);background:rgba(229,72,77,.06)}
+.about-foot{
+  text-align:center;font-size:11.5px;color:var(--text3);
+  padding:20px 0 8px;line-height:1.9;
+}
+.about-foot a{color:var(--text3)}
+
+/* ---------- 设置页 ---------- */
+.seg{display:flex;gap:6px;background:var(--bg);border:1.5px solid var(--line);border-radius:13px;padding:4px}
+.seg button{
+  flex:1;border:0;background:transparent;color:var(--text2);font-family:inherit;
+  font-size:13.5px;font-weight:600;padding:9px 4px;border-radius:10px;cursor:pointer;transition:.16s;
+}
+.seg button.on{background:var(--brand);color:#fff;box-shadow:0 3px 10px rgba(var(--brand-rgb),.3)}
+
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:9px}
+.swatches button{
+  border:0;background:transparent;padding:0;cursor:pointer;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+}
+.swatches i{
+  display:block;width:38px;max-width:64%;aspect-ratio:1/1;border-radius:50%;
+  background:linear-gradient(140deg,var(--c2),var(--c));
+  box-shadow:0 3px 9px rgba(10,12,16,.14);position:relative;transition:transform .15s;
+}
+.swatches i::after{
+  content:"";position:absolute;inset:0;border-radius:50%;border:2.5px solid transparent;transition:.16s;
+}
+.swatches button.on i::after{border-color:var(--text);inset:-4px}
+.swatches button.on i{transform:scale(1.02)}
+.swatches span{font-size:10.5px;color:var(--text3);font-weight:600}
+.swatches button.on span{color:var(--text)}
+
+.link-row{
+  width:100%;display:flex;align-items:center;gap:10px;
+  background:transparent;border:0;
+  padding:13px 0;font-family:inherit;color:var(--text);font-size:14.5px;font-weight:600;
+  text-align:left;cursor:pointer;text-decoration:none;
+}
+.link-row + .link-row{border-top:1px solid var(--line)}
+.link-row span{flex:none}
+.link-row small{margin-left:auto;font-size:12px;color:var(--text3);font-weight:500}
+.link-row i{font-style:normal;color:var(--text3);font-size:16px;flex:none;margin-left:2px}
+.link-row:active{opacity:.6}
+
+/* ---------- 桌面浏览器 ---------- */
+@media (hover:hover) and (pointer:fine){
+  .item:hover{transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+  .tabs button:hover{color:var(--brand)}
+  .tabs button.on:hover{color:#fff}
+  .pf-tabs button:hover{color:var(--brand);border-color:rgba(var(--brand-rgb),.4)}
+  .pf-tabs button.on:hover{color:var(--brand)}
+  .save:hover{filter:brightness(1.04)}
+  .fab:hover{transform:scale(1.06)}
+  .input-wrap:hover{border-color:#cfd4dc}
+  .dir:hover{border-color:#cfd4dc}
+  .dir.on:hover{border-color:inherit}
+  html[data-theme="dark"] .input-wrap:hover{border-color:#3a4048}
+}
+@media (min-width:760px){
+  body{background:radial-gradient(120% 60% at 50% 0%,rgba(var(--brand2-rgb),.1),transparent 62%),var(--bg)}
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <b>天天货运记账</b>
+      <span>每趟记一笔 · 净赚多少一目了然</span>
+    </div>
+  </div>
+
+  <section id="viewList">
+
+  <section class="summary">
+    <div class="sum-label" id="sumLabel">今日净赚</div>
+    <div class="sum-value"><i>¥</i><b id="sumNet">0</b><em>元</em></div>
+    <div class="sum-sub" id="sumSub"></div>
+    <div class="sum-grid">
+      <div><b id="sumCount">0</b><span>趟数</span></div>
+      <div><b id="sumKm">0</b><span>公里</span></div>
+      <div><b id="sumUnit">—</b><span>元/公里</span></div>
+    </div>
+  </section>
+
+  <div class="tabs" id="tabs">
+    <button data-f="today" class="on">今天</button>
+    <button data-f="week">本周</button>
+    <button data-f="month">本月</button>
+    <button data-f="all">全部</button>
+  </div>
+
+  <div class="pf-tabs" id="pfTabs">
+    <button data-p="all" class="on">全部平台</button>
+    <button data-p="货拉拉">货拉拉</button>
+    <button data-p="运满满">运满满</button>
+    <button data-p="其他">其他</button>
+  </div>
+
+  <main id="list"></main>
+
+  </section>
+
+  <section id="viewStats" hidden>
+    <div class="tabs" id="statTabs">
+      <button data-s="week" class="on">本周</button>
+      <button data-s="month">本月</button>
+      <button data-s="all">全部</button>
+    </div>
+
+    <div class="stat-hero">
+      <div class="h-label" id="statLabel">本周收入</div>
+      <div class="h-big"><i>¥</i><span id="statBig">0.00</span></div>
+      <div class="h-sub" id="statSub"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">最近 7 天 <span id="barHint">每天到手</span></div>
+      <div class="bars" id="barChart"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">按平台 <span>收入 · 趟数</span></div>
+      <div id="platBars"></div>
+    </div>
+
+    <div class="grid4" id="statGrid"></div>
+  </section>
+
+  <section id="viewSettings" hidden>
+    <div class="about-hero">
+      <img src="icon-192.png" alt="应用图标">
+      <h2>天天货运记账</h2>
+      <p>版本 <span id="verText">1.0.0</span> · 本地记账 · 不联网</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">外观 <span>切换立刻生效</span></div>
+      <div class="seg" id="themeSeg">
+        <button type="button" data-t="light">浅色</button>
+        <button type="button" data-t="dark">深色</button>
+        <button type="button" data-t="auto">跟随系统</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">主题色 <span>挑个顺眼的</span></div>
+      <div class="swatches" id="accentRow">
+        <button type="button" data-a="orange" style="--c:#ff6a00;--c2:#ff8a3d"><i></i><span>活力橙</span></button>
+        <button type="button" data-a="blue" style="--c:#2f6bff;--c2:#5b8cff"><i></i><span>公路蓝</span></button>
+        <button type="button" data-a="green" style="--c:#0f9d76;--c2:#34bd98"><i></i><span>通行绿</span></button>
+        <button type="button" data-a="cyan" style="--c:#0a9bbd;--c2:#31bdd8"><i></i><span>天空青</span></button>
+        <button type="button" data-a="purple" style="--c:#7c5cff;--c2:#9c82ff"><i></i><span>夜色紫</span></button>
+        <button type="button" data-a="pink" style="--c:#f0417e;--c2:#ff6f9f"><i></i><span>里程粉</span></button>
+      </div>
+    </div>
+
+    <div class="duo">
+      <div class="card duo-col">
+        <div class="card-head" style="margin-bottom:2px">更多</div>
+        <a class="link-row" href="https://ffoo.top" target="_blank" rel="noopener">
+          <span>作者官网</span><i>›</i>
+        </a>
+        <button class="link-row" type="button" id="updateBtn">
+          <span>软件更新</span><i>›</i>
+        </button>
+        <button class="link-row" type="button" id="aboutBtn">
+          <span>关于应用</span><i>›</i>
+        </button>
+      </div>
+      <div class="card duo-col">
+        <div class="card-head" style="margin-bottom:10px">数据</div>
+        <button class="abtn" id="exportBtn">导出数据</button>
+        <button class="abtn" id="importBtn">导入数据</button>
+        <input type="file" id="importFile" accept="application/json,.json,text/plain" hidden>
+        <button class="abtn danger" id="clearBtn">清空记录</button>
+      </div>
+    </div>
+
+    <div class="about-foot">
+      © 2026 FFF. All Rights Reserved.
+    </div>
+  </section>
+</div>
+
+<button class="fab" id="fab" aria-label="记一笔">+</button>
+
+<nav class="tabbar" id="tabbar">
+  <button data-v="list" class="on">
+    <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h11"/></svg>
+    <span>明细</span>
+  </button>
+  <button data-v="stats">
+    <svg viewBox="0 0 24 24"><path d="M5 19V10M12 19V5M19 19v-6"/></svg>
+    <span>统计</span>
+  </button>
+  <button data-v="settings">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.1 14.3a1.5 1.5 0 0 0 .3 1.7l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.5 1.5 0 0 0-2.5 1v.3a1.9 1.9 0 1 1-3.8 0v-.2a1.5 1.5 0 0 0-2.6-1l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1a1.5 1.5 0 0 0-1-2.5H3.8a1.9 1.9 0 1 1 0-3.8h.2a1.5 1.5 0 0 0 1-2.6l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4V3.8a1.9 1.9 0 1 1 3.8 0v.2a1.5 1.5 0 0 0 2.5 1l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.5 1.5 0 0 0-.3 1.7v.1a1.5 1.5 0 0 0 1.4.9h.3a1.9 1.9 0 1 1 0 3.8h-.2a1.5 1.5 0 0 0-1.4.9z"/></svg>
+    <span>设置</span>
+  </button>
+</nav>
+
+<div class="mask" id="mask"></div>
+
+<form class="sheet" id="sheet" autocomplete="off">
+  <div class="handle"></div>
+  <div class="sheet-head">
+    <h2 id="sheetTitle">记一笔</h2>
+    <button type="button" class="del" id="delBtn" style="display:none">删除</button>
+  </div>
+
+  <div class="field">
+    <label>跑哪个平台</label>
+    <div class="plat-row" id="platRow">
+      <button type="button" class="plat on" data-p="货拉拉">货拉拉</button>
+      <button type="button" class="plat" data-p="运满满">运满满</button>
+      <button type="button" class="plat" data-p="其他">其他</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="kmInput">跑多少公里</label>
+    <div class="input-wrap" id="kmWrap">
+      <input id="kmInput" type="number" inputmode="decimal" step="0.1" min="0" placeholder="0" enterkeyhint="next">
+      <span class="suf">公里</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="feeInput">这趟运费</label>
+    <div class="input-wrap" id="feeWrap">
+      <span class="pre">¥</span>
+      <input id="feeInput" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0" enterkeyhint="next">
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="exp-head">
+      <label>这笔金额 <span class="opt">货主给的选收入，自己掏的选支出</span></label>
+      <span class="exp-sum zero" id="expSum">¥0.00</span>
+    </div>
+    <div class="dir-row" id="dirRow">
+      <button type="button" class="dir on" data-d="in"><b>收入</b><small>加到运费里</small></button>
+      <button type="button" class="dir" data-d="out"><b>支出</b><small>从运费里扣</small></button>
+    </div>
+    <div class="input-wrap slim" id="extraWrap" style="margin-top:8px">
+      <span class="pre">¥</span>
+      <input id="extraInput" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0" enterkeyhint="next" aria-label="金额">
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="noteInput">备注 <span class="opt">选填</span></label>
+    <input class="note-input" id="noteInput" type="text" maxlength="30" placeholder="路线、客户、货物…">
+  </div>
+
+  <div class="calc">
+    <div class="calc-row">
+      <div class="lbl">每公里净赚 <em>净收入 ÷ 公里数</em></div>
+      <div class="val" id="calcVal">—</div>
+    </div>
+    <div class="calc-row" id="calcSubRow" style="display:none">
+      <div class="lbl2">收入合计 <b id="calcBreak">运费 0 + 额外 0</b></div>
+      <div class="val2" id="calcTotal">—</div>
+    </div>
+  </div>
+
+  <button class="save" type="submit" id="saveBtn">保存这笔</button>
+</form>
+
+<div class="toast" id="toast"></div>
+
+<div class="ab-mask" id="aboutMask"></div>
+<div class="ab-box" id="aboutBox" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+  <div class="ab-head">
+    <h2 id="aboutTitle">关于应用</h2>
+    <span class="v">v<span class="ver">1.0.0</span> · 本地记账 · 不联网</span>
+    <button class="ab-close" type="button" id="aboutClose" aria-label="关闭">×</button>
+  </div>
+  <div class="ab-body">
+    <p>给跑货拉拉、运满满的司机用的极简记账本。每跑一趟记一笔，公里数和运费一填，立刻知道这趟每公里到手多少钱。数据只存在本机，不联网、不上传。</p>
+
+    <div class="sub-head">怎么用</div>
+    <ol class="steps">
+      <li>点右下角 <b>+</b>，选平台（货拉拉 / 运满满 / 其他）。</li>
+      <li>填 <b>公里数</b> 和 <b>运费</b>，运费可以是 0，比如放空回来只记里程。</li>
+      <li>货主另给了高速费、等候费，点 <b>收入</b> 填金额，自动加到运费里。</li>
+      <li>自己掏的油钱、停车费，点 <b>支出</b> 填金额，自动从运费里扣。</li>
+      <li>保存后，主页大卡片就是这段时间的到手总额，右下角是 <b>每公里赚多少</b>。</li>
+      <li>想改想删：在明细里点任意一条，改完保存，或右上角删除。</li>
+      <li>统计页看最近 7 天走势和平台对比，设置页能换主题色和深浅色。</li>
+    </ol>
+
+    <div class="sub-head">提醒</div>
+    <p class="tip">换手机、清缓存、卸载重装前，先在设置页 <b>导出数据</b> 备份一份；换到新手机上用 <b>导入数据</b> 就能恢复，数据只在本机，删了找不回来。</p>
+
+    <button class="ab-ok" type="button" id="aboutOk">知道了</button>
+  </div>
+</div>
+
+<div class="ab-mask" id="impMask"></div>
+<div class="ab-box" id="impBox" role="dialog" aria-modal="true" aria-labelledby="impTitle">
+  <div class="ab-head">
+    <h2 id="impTitle">导入数据</h2>
+    <button class="ab-close" type="button" id="impClose" aria-label="关闭">×</button>
+  </div>
+  <div class="ab-body">
+    <p id="impInfo">已读取 0 条记录</p>
+    <p class="tip" style="margin-top:8px">
+      <b>合并</b>：保留现有记录，把备份里的加进来，重复的会自动跳过。<br>
+      <b>覆盖</b>：删掉现有全部记录，只留备份里的。
+    </p>
+    <div class="imp-acts">
+      <button class="abtn" type="button" id="impMerge">合并</button>
+      <button class="abtn danger" type="button" id="impReplace">覆盖</button>
+    </div>
+  </div>
+</div>
+
+<div class="cf-mask" id="cfMask"></div>
+<div class="cf-box" id="cfBox" role="dialog" aria-modal="true" aria-labelledby="cfMsg">
+  <p class="cf-msg" id="cfMsg"></p>
+  <div class="cf-acts">
+    <button class="cf-no" type="button" id="cfNo">取消</button>
+    <button class="cf-yes danger" type="button" id="cfYes">确定</button>
+  </div>
+</div>
+
+<div class="ab-mask" id="updMask"></div>
+<div class="ab-box" id="updBox" role="dialog" aria-modal="true" aria-labelledby="updTitle">
+  <div class="ab-head">
+    <h2 id="updTitle">发现新版本</h2>
+    <span class="v" id="updVer">v1.0.0</span>
+    <button class="ab-close" type="button" id="updClose" aria-label="关闭">×</button>
+  </div>
+  <div class="ab-body">
+    <p id="updIntro">有新版本可以更新，更新不会影响已有记录。</p>
+    <div class="sub-head">更新内容</div>
+    <ul class="steps upd-notes" id="updNotes"></ul>
+    <div class="imp-acts">
+      <button class="abtn" type="button" id="updLater">稍后</button>
+      <button class="ab-ok" type="button" id="updNow">立即更新</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var KEY = 'sj_jz_records_v1';
+  var THEME_KEY = 'sj_jz_theme_v1';
+  var ACCENT_KEY = 'sj_jz_accent_v1';
+  var PLAT_KEY = 'sj_jz_platform_v1';
+  var APP_VER = '1.0.13';
+  /* 更新源：换成你自己的部署地址即可；留空则回退到本地 version.json */
+  var UPDATE_URL = 'https://jz.ffoo.top/version.json';
+  var PLATS = ['货拉拉', '运满满', '其他'];
+
+  var records = [];
+  var filter = 'today';
+  var pfFilter = 'all';
+  var plat = '货拉拉';
+  var extraDir = 'in';
+  var editingId = null;
+  var migrated = false;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var listEl = $('list'), maskEl = $('mask'), sheetEl = $('sheet');
+  var kmInput = $('kmInput'), feeInput = $('feeInput'), extraInput = $('extraInput'), noteInput = $('noteInput');
+  var kmWrap = $('kmWrap'), feeWrap = $('feeWrap'), extraWrap = $('extraWrap');
+  var expSum = $('expSum');
+  var calcVal = $('calcVal'), calcSubRow = $('calcSubRow'), calcTotal = $('calcTotal'), calcBreak = $('calcBreak');
+  var toastEl = $('toast');
+
+  /* ---------- 存储 ---------- */
+  function normalize(r) {
+    if (!r || typeof r.km !== 'number' || typeof r.fee !== 'number' || !r.ts) return null;
+
+    /* 老版本把额外费用拆成明细数组，统一求和成一笔 */
+    if (typeof r.extra !== 'number' || !isFinite(r.extra)) {
+      var sum = 0;
+      if (Array.isArray(r.extraItems)) {
+        for (var i = 0; i < r.extraItems.length; i++) {
+          var it = r.extraItems[i];
+          if (it && typeof it.amount === 'number' && isFinite(it.amount) && it.amount > 0) sum += it.amount;
+        }
+      }
+      r.extra = sum;
+      migrated = true;
+    }
+    if (r.extra < 0) { r.extra = 0; migrated = true; }
+    delete r.extraItems;
+    delete r.cost;                       /* 成本已并入支出金额 */
+
+    if (r.extraDir !== 'out') { if (r.extraDir !== 'in') migrated = true; r.extraDir = 'in'; }
+    if (PLATS.indexOf(r.platform) < 0) { r.platform = '其他'; migrated = true; }
+    if (!r.note) r.note = '';
+    return r;
+  }
+
+  function load() {
+    var raw = null;
+    try { raw = localStorage.getItem(KEY); } catch (e) { return []; }
+    var arr;
+    try { arr = raw ? JSON.parse(raw) : []; } catch (e) { return []; }
+    if (!Array.isArray(arr)) return [];
+
+    var out = [];
+    for (var i = 0; i < arr.length; i++) {
+      var r = normalize(arr[i]);
+      if (r) out.push(r);
+    }
+
+    /* 迁移过就立刻回写，避免下次再迁一遍 */
+    if (migrated) {
+      try { localStorage.setItem(KEY, JSON.stringify(out)); } catch (e) {}
+      migrated = false;
+    }
+    return out;
+  }
+
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(records)); } catch (e) {}
+  }
+
+  /* ---------- 工具 ---------- */
+  function num(v) {
+    var n = parseFloat(v);
+    return isFinite(n) ? n : 0;
+  }
+  function n2(v) { return (Math.round(v * 100) / 100).toFixed(2); }
+  function n1(v) {
+    var r = Math.round(v * 10) / 10;
+    return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1));
+  }
+  function money(v) {
+    return Math.abs(v) >= 1000 ? v.toFixed(0) : n2(v);
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function dayKey(ts) {
+    var d = new Date(ts);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function hhmm(ts) {
+    var d = new Date(ts);
+    return pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  function dayLabel(ts) {
+    var d = new Date(ts), now = new Date();
+    var t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    var d0 = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    var diff = Math.round((t0 - d0) / 86400000);
+    if (diff === 0) return '今天';
+    if (diff === 1) return '昨天';
+    if (diff === 2) return '前天';
+    return (d.getMonth() + 1) + '月' + d.getDate() + '日';
+  }
+  function rangeStart(f) {
+    var now = new Date();
+    var y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+    if (f === 'today') return new Date(y, m, d).getTime();
+    if (f === 'week') {
+      var wd = (now.getDay() + 6) % 7;            /* 周一算一周开始 */
+      return new Date(y, m, d - wd).getTime();
+    }
+    if (f === 'month') return new Date(y, m, 1).getTime();
+    return 0;
+  }
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('on');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { toastEl.classList.remove('on'); }, 1600);
+  }
+  function buzz(ms) { if (navigator.vibrate) { try { navigator.vibrate(ms || 8); } catch (e) {} } }
+
+  /* ---------- 金额口径 ---------- */
+  function extraOf(r) { return r.extra > 0 ? r.extra : 0; }
+  /* 收入方向加上，支出方向扣掉 */
+  function signedExtraOf(r) { return r.extraDir === 'out' ? -extraOf(r) : extraOf(r); }
+  function incomeOf(r) { return r.fee + signedExtraOf(r); }
+  function netOf(r) { return incomeOf(r); }
+
+  /* ---------- 渲染 ---------- */
+  var LABELS = { today: '今日净赚', week: '本周净赚', month: '本月净赚', all: '累计净赚' };
+
+  function render() {
+    var start = rangeStart(filter);
+    var rows = records.filter(function (r) {
+      return r.ts >= start && (pfFilter === 'all' || r.platform === pfFilter);
+    }).sort(function (a, b) { return b.ts - a.ts; });
+
+    var net = 0, addExtra = 0, subExtra = 0, km = 0;
+    rows.forEach(function (r) {
+      net += netOf(r);
+      if (r.extraDir === 'out') subExtra += extraOf(r);
+      else addExtra += extraOf(r);
+      km += r.km;
+    });
+
+    $('sumLabel').textContent = LABELS[filter];
+    $('sumNet').textContent = money(net);
+    $('sumCount').textContent = rows.length;
+    $('sumKm').textContent = n1(km);
+    $('sumUnit').textContent = km > 0 ? n2(net / km) : '—';
+
+    var subEl = $('sumSub');
+    if (!rows.length) {
+      subEl.style.display = 'none';
+      subEl.innerHTML = '';
+    } else {
+      var parts = ['收入 <b>¥' + money(net) + '</b>'];
+      if (addExtra > 0) parts.push('含额外 <b>¥' + money(addExtra) + '</b>');
+      if (subExtra > 0) parts.push('已扣支出 <b>¥' + money(subExtra) + '</b>');
+      subEl.style.display = 'block';
+      subEl.innerHTML = parts.join(' · ');
+    }
+
+    if (!rows.length) {
+      var tip = pfFilter === 'all' ? '点右下角 + 记一笔' : pfFilter + '还没有记录';
+      listEl.innerHTML =
+        '<div class="empty">' +
+        '<svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">' +
+        '<path d="M9 17H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-4"/>' +
+        '<circle cx="12" cy="16" r="1"/><path d="M12 10v3"/></svg>' +
+        '<p>还没有记录</p><small>' + tip + '</small></div>';
+      if (view === 'stats') renderStats();
+      return;
+    }
+
+    var html = '';
+    var curDay = null, curKey = null, dayNet = 0, dayRows = [];
+
+    function flushDay() {
+      if (curDay === null) return;
+      html += '<div class="day-head"><span>' + curDay + '</span><span>' + dayRows.length +
+        ' 趟 · 净 ¥' + n2(dayNet) + '</span></div>';
+      for (var k = 0; k < dayRows.length; k++) {
+        var r = dayRows[k];
+        var ex = extraOf(r);
+        var unit = r.km > 0 ? n2(netOf(r) / r.km) : '—';
+        var tags = '<span class="pf" data-p="' + r.platform + '">' + r.platform + '</span>';
+        if (ex > 0) {
+          tags += r.extraDir === 'out'
+            ? '<span class="extra-tag minus">−支出 ' + n2(ex) + '</span>'
+            : '<span class="extra-tag plus">+额外 ' + n2(ex) + '</span>';
+        }
+
+        html += '<div class="item" data-id="' + r.id + '">' +
+          '<div class="item-main">' +
+            '<div class="item-top"><div class="fee"><i>¥</i>' + n2(netOf(r)) + '</div>' + tags + '</div>' +
+            '<div class="item-meta"><span>' + hhmm(r.ts) + '</span>' +
+              (r.note ? '<span class="dot"></span><span class="note">' + esc(r.note) + '</span>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="item-side"><div class="km">' + n1(r.km) + ' 公里</div>' +
+            '<div class="unit">' + unit + ' 元/公里</div></div>' +
+        '</div>';
+      }
+    }
+
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var key = dayKey(r.ts);
+      if (key !== curKey) {
+        flushDay();
+        curKey = key;
+        curDay = dayLabel(r.ts);
+        dayNet = 0; dayRows = [];
+      }
+      dayNet += netOf(r);
+      dayRows.push(r);
+    }
+    flushDay();
+
+    listEl.innerHTML = html;
+    if (view === 'stats') renderStats();
+  }
+
+  /* ---------- 金额与收支方向 ---------- */
+  function expTotal() { return num(extraInput.value); }
+
+  function refreshExpSum() {
+    var v = expTotal();
+    var out = extraDir === 'out';
+    expSum.textContent = (out && v > 0 ? '−' : '') + '¥' + n2(v);
+    expSum.classList.toggle('zero', v <= 0);
+    expSum.classList.toggle('out', out && v > 0);
+  }
+
+  function setDir(dir) {
+    extraDir = dir === 'out' ? 'out' : 'in';
+    var btns = $('dirRow').querySelectorAll('.dir');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.toggle('on', btns[i].getAttribute('data-d') === extraDir);
+    }
+    refreshExpSum();
+    recalc();
+  }
+
+  /* ---------- 弹层计算 ---------- */
+  function recalc() {
+    var km = num(kmInput.value);
+    var fee = num(feeInput.value);
+    var ex = expTotal();
+    var signed = extraDir === 'out' ? -ex : ex;
+    var income = fee + signed;
+    var hasFee = feeInput.value.trim() !== '';
+
+    refreshExpSum();
+
+    if (km > 0 && hasFee) {
+      calcVal.innerHTML = n2(income / km) + '<small>元/公里</small>';
+    } else {
+      calcVal.innerHTML = '—';
+    }
+
+    if (ex > 0) {
+      calcSubRow.style.display = 'flex';
+      calcBreak.textContent = extraDir === 'out'
+        ? '运费 ' + n2(fee) + ' − 支出 ' + n2(ex)
+        : '运费 ' + n2(fee) + ' + 额外 ' + n2(ex);
+      calcTotal.textContent = '¥' + n2(income);
+      calcTotal.classList.toggle('minus', income < 0);
+    } else {
+      calcSubRow.style.display = 'none';
+    }
+  }
+
+  /* ---------- 弹层开关 ---------- */
+  function setPlat(p) {
+    plat = p;
+    var btns = $('platRow').querySelectorAll('.plat');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.toggle('on', btns[i].getAttribute('data-p') === p);
+    }
+    try { localStorage.setItem(PLAT_KEY, p); } catch (e) {}
+  }
+
+  function openSheet(rec) {
+    editingId = rec ? rec.id : null;
+    $('sheetTitle').textContent = rec ? '修改这一笔' : '记一笔';
+    $('delBtn').style.display = rec ? 'block' : 'none';
+    $('saveBtn').textContent = rec ? '保存修改' : '保存这笔';
+
+    setPlat(rec ? rec.platform : plat);
+    kmInput.value = rec ? n1(rec.km) : '';
+    feeInput.value = rec ? n2(rec.fee) : '';
+    extraInput.value = rec && rec.extra ? n2(rec.extra) : '';
+    noteInput.value = rec ? (rec.note || '') : '';
+
+    kmWrap.classList.remove('err');
+    feeWrap.classList.remove('err');
+    extraWrap.classList.remove('err');
+    setDir(rec ? rec.extraDir : 'in');
+
+    maskEl.classList.add('on');
+    sheetEl.classList.add('on');
+    sheetEl.scrollTop = 0;
+    document.body.style.overflow = 'hidden';
+    if (!rec) setTimeout(function () { kmInput.focus(); }, 320);
+  }
+
+  function closeSheet() {
+    maskEl.classList.remove('on');
+    sheetEl.classList.remove('on');
+    document.body.style.overflow = '';
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    editingId = null;
+  }
+
+  function submit() {
+    var km = num(kmInput.value);
+    var fee = num(feeInput.value);
+    var extra = num(extraInput.value);
+    if (extra < 0) extra = 0;
+
+    kmWrap.classList.remove('err');
+    feeWrap.classList.remove('err');
+    extraWrap.classList.remove('err');
+
+    if (!(km > 0)) { kmWrap.classList.add('err'); kmInput.focus(); toast('公里数要大于 0'); return; }
+    if (feeInput.value.trim() === '' || fee < 0) {
+      feeWrap.classList.add('err'); feeInput.focus(); toast('填一下这趟运费'); return;
+    }
+
+    var rec = {
+      km: km, fee: fee, extra: extra, extraDir: extraDir,
+      platform: plat, note: noteInput.value.trim()
+    };
+
+    if (editingId) {
+      for (var j = 0; j < records.length; j++) {
+        if (records[j].id === editingId) {
+          records[j].km = rec.km;
+          records[j].fee = rec.fee;
+          records[j].extra = rec.extra;
+          records[j].extraDir = rec.extraDir;
+          records[j].platform = rec.platform;
+          records[j].note = rec.note;
+          break;
+        }
+      }
+      toast('已保存修改');
+    } else {
+      rec.id = 'r' + Date.now() + Math.random().toString(36).slice(2, 6);
+      rec.ts = Date.now();
+      records.push(rec);
+      var net = rec.fee + signedExtraOf(rec);
+      toast('记上了 · ' + n2(net / rec.km) + ' 元/公里');
+    }
+
+    persist();
+    render();
+    buzz(12);
+    closeSheet();
+    track('record_add', rec.platform);
+  }
+
+  /* 统计埋点：仅在 App 内可用 */
+  function track(evt, label) {
+    try { if (window.TTNative && typeof window.TTNative.logEvent === 'function') window.TTNative.logEvent(evt, label || ''); } catch (e) {}
+  }
+
+  /* ---------- 事件 ---------- */
+  $('fab').addEventListener('click', function () { buzz(8); openSheet(null); });
+  maskEl.addEventListener('click', closeSheet);
+  /* 保存统一走表单提交，按钮 type=submit 会自然触发，避免一次点击存两笔 */
+  sheetEl.addEventListener('submit', function (e) { e.preventDefault(); submit(); });
+
+  kmInput.addEventListener('input', recalc);
+  feeInput.addEventListener('input', recalc);
+  extraInput.addEventListener('input', recalc);
+
+  $('platRow').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.plat') : null;
+    if (!b) return;
+    buzz(6);
+    setPlat(b.getAttribute('data-p'));
+  });
+
+  $('dirRow').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.dir') : null;
+    if (!b) return;
+    buzz(6);
+    setDir(b.getAttribute('data-d'));
+  });
+
+  kmInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); feeInput.focus(); } });
+  feeInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); extraInput.focus(); } });
+  extraInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); noteInput.focus(); } });
+  noteInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+
+  $('delBtn').addEventListener('click', function () {
+    if (!editingId) return;
+    var id = editingId;
+    askConfirm('删除这一笔记录？', function () {
+      records = records.filter(function (r) { return r.id !== id; });
+      persist(); render(); closeSheet(); toast('已删除');
+    });
+  });
+
+  listEl.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('.item') : null;
+    if (!el) return;
+    var id = el.getAttribute('data-id');
+    for (var i = 0; i < records.length; i++) {
+      if (records[i].id === id) { openSheet(records[i]); return; }
+    }
+  });
+
+  $('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-f]') : null;
+    if (!b) return;
+    filter = b.getAttribute('data-f');
+    Array.prototype.forEach.call($('tabs').children, function (x) { x.classList.toggle('on', x === b); });
+    render();
+  });
+
+  $('pfTabs').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-p]') : null;
+    if (!b) return;
+    pfFilter = b.getAttribute('data-p');
+    Array.prototype.forEach.call($('pfTabs').children, function (x) { x.classList.toggle('on', x === b); });
+    render();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (updBox.classList.contains('on') && updInfo && updInfo.force) return;
+    closeUpd();
+    closeAbout();
+    closeImp();
+    closeSheet();
+  });
+
+  /* ---------- 视图切换 ---------- */
+  var view = 'list';
+  var statRange = 'week';
+
+  function switchView(v) {
+    view = v;
+    var map = { list: 'viewList', stats: 'viewStats', settings: 'viewSettings' };
+    for (var k in map) {
+      var el = $(map[k]);
+      if (el) el.hidden = (k !== v);
+    }
+    Array.prototype.forEach.call($('tabbar').children, function (b) {
+      b.classList.toggle('on', b.getAttribute('data-v') === v);
+    });
+    $('fab').style.display = v === 'list' ? 'grid' : 'none';
+    if (v === 'stats') renderStats();
+    window.scrollTo(0, 0);
+  }
+
+  $('tabbar').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-v]') : null;
+    if (!b) return;
+    buzz(6);
+    switchView(b.getAttribute('data-v'));
+  });
+
+  /* ---------- 统计页 ---------- */
+  function shortMoney(v) {
+    if (Math.abs(v) >= 10000) return (v / 10000).toFixed(1) + '万';
+    if (Math.abs(v) >= 1000) return (v / 1000).toFixed(1) + 'k';
+    return Math.round(v).toString();
+  }
+
+  function rowsIn(range) {
+    var start = range === 'all' ? 0 : rangeStart(range === 'month' ? 'month' : 'week');
+    return records.filter(function (r) { return r.ts >= start; });
+  }
+
+  function drawBars() {
+    var now = new Date();
+    var y = now.getFullYear(), m = now.getMonth(), dd = now.getDate();
+    var days = [];
+    for (var i = 6; i >= 0; i--) {
+      var st = new Date(y, m, dd - i);
+      var s = st.getTime(), e = new Date(y, m, dd - i + 1).getTime();
+      var v = 0;
+      for (var j = 0; j < records.length; j++) {
+        if (records[j].ts >= s && records[j].ts < e) v += netOf(records[j]);
+      }
+      days.push({ label: (st.getMonth() + 1) + '/' + st.getDate(), v: v });
+    }
+
+    var max = 1;
+    days.forEach(function (d) { if (d.v > max) max = d.v; });
+
+    var html = '';
+    days.forEach(function (d) {
+      var h = d.v > 0 ? Math.max(6, Math.round(d.v / max * 76)) : 3;
+      html += '<div class="col' + (d.v > 0 ? '' : ' zero') + '">' +
+        '<i>' + (d.v > 0 ? shortMoney(d.v) : '') + '</i>' +
+        '<div class="bar" style="height:' + h + 'px"></div>' +
+        '<em>' + d.label + '</em></div>';
+    });
+    $('barChart').innerHTML = html;
+  }
+
+  function renderStats() {
+    var rows = rowsIn(statRange);
+    var feeSum = 0, inSum = 0, outSum = 0, km = 0;
+    rows.forEach(function (r) {
+      feeSum += r.fee;
+      km += r.km;
+      if (r.extraDir === 'out') outSum += extraOf(r);
+      else inSum += extraOf(r);
+    });
+    var total = feeSum + inSum - outSum;
+
+    var labelMap = { week: '本周收入', month: '本月收入', all: '累计收入' };
+    $('statLabel').textContent = labelMap[statRange];
+    $('statBig').textContent = money(total);
+    $('statSub').innerHTML =
+      '运费 <b>¥' + money(feeSum) + '</b>' +
+      '加项 <b>¥' + money(inSum) + '</b>' +
+      '扣减 <b>¥' + money(outSum) + '</b>';
+
+    drawBars();
+
+    /* 平台对比 */
+    var stats = PLATS.map(function (p) {
+      var sum = 0, cnt = 0;
+      rows.forEach(function (r) {
+        if (r.platform === p) { sum += netOf(r); cnt++; }
+      });
+      return { p: p, sum: sum, cnt: cnt };
+    });
+    var maxV = 1;
+    stats.forEach(function (s) { if (s.sum > maxV) maxV = s.sum; });
+
+    var colors = { '货拉拉': '#ff6a00', '运满满': '#2f6bff', '其他': '#12a594' };
+    var ph = '';
+    stats.forEach(function (s) {
+      var w = s.sum > 0 ? Math.max(3, Math.round(s.sum / maxV * 100)) : 0;
+      ph += '<div class="pbar">' +
+        '<div class="pbar-top"><b>' + s.p + '</b>' +
+        '<span>¥' + money(s.sum) + ' · ' + s.cnt + ' 趟</span></div>' +
+        '<div class="pbar-track"><div class="pbar-fill" style="width:' + w + '%;background:' + colors[s.p] + '"></div></div>' +
+        '</div>';
+    });
+    $('platBars').innerHTML = ph;
+
+    /* 指标 */
+    var avgTrip = rows.length ? total / rows.length : 0;
+    $('statGrid').innerHTML =
+      '<div class="cell"><b>' + rows.length + '</b><span>趟数</span></div>' +
+      '<div class="cell"><b>' + n1(km) + '</b><span>总公里</span></div>' +
+      '<div class="cell"><b>' + (km > 0 ? n2(total / km) : '—') + '</b><span>元/公里</span></div>' +
+      '<div class="cell"><b>' + (rows.length ? money(avgTrip) : '—') + '</b><span>单趟平均</span></div>';
+  }
+
+  $('statTabs').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-s]') : null;
+    if (!b) return;
+    statRange = b.getAttribute('data-s');
+    Array.prototype.forEach.call($('statTabs').children, function (x) { x.classList.toggle('on', x === b); });
+    renderStats();
+  });
+
+  /* ---------- 确认框（替代系统 confirm，避免 WebView 弹「网址为 xxx 的网页显示」） ---------- */
+  var cfMask = $('cfMask'), cfBox = $('cfBox'), cfCb = null;
+
+  function askConfirm(msg, onOk, danger) {
+    $('cfMsg').textContent = msg;
+    $('cfYes').className = 'cf-yes' + (danger === false ? '' : ' danger');
+    cfCb = onOk;
+    cfMask.classList.add('on');
+    cfBox.classList.add('on');
+  }
+
+  function closeCf() {
+    cfMask.classList.remove('on');
+    cfBox.classList.remove('on');
+    cfCb = null;
+  }
+
+  $('cfNo').addEventListener('click', closeCf);
+  cfMask.addEventListener('click', closeCf);
+  $('cfYes').addEventListener('click', function () {
+    var cb = cfCb;
+    closeCf();
+    if (cb) cb();
+  });
+
+  /* ---------- 设置页 ---------- */
+  $('exportBtn').addEventListener('click', function () {
+    if (!records.length) { toast('还没有记录可以导出'); return; }
+    var now = new Date();
+    var payload = {
+      app: 'sj-jz',
+      version: 1,
+      exportedAt: now.toISOString(),
+      records: records
+    };
+    var body = JSON.stringify(payload, null, 2);
+    var name = '天天货运记账-' + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + '.json';
+    /* App 里 WebView 不支持 <a download>，改走原生机写入系统「下载」目录 */
+    if (window.TTNative && typeof window.TTNative.exportData === 'function') {
+      var r = window.TTNative.exportData(body, name);
+      if (r !== 'ok') toast('导出失败，请重试'); else track('export_data', 'ok');
+      return;
+    }
+    var blob = new Blob([body], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+    toast('已导出 ' + records.length + ' 条记录');
+  });
+
+  $('clearBtn').addEventListener('click', function () {
+    if (!records.length) { toast('本来就是空的'); return; }
+    askConfirm('清空后无法恢复，' + records.length + ' 条记录会全部删掉。确定吗？', function () {
+      records = [];
+      persist();
+      render();
+      renderStats();
+      toast('已清空全部记录');
+    });
+  });
+
+  /* ---------- 导入数据 ---------- */
+  var impMask = $('impMask'), impBox = $('impBox');
+  var impPending = [];
+
+  function openImp() { impMask.classList.add('on'); impBox.classList.add('on'); }
+  function closeImp() { impMask.classList.remove('on'); impBox.classList.remove('on'); }
+
+  $('importBtn').addEventListener('click', function () { buzz(6); $('importFile').click(); });
+  $('impClose').addEventListener('click', closeImp);
+  impMask.addEventListener('click', closeImp);
+
+  $('importFile').addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function () {
+      var data;
+      try {
+        data = JSON.parse(String(reader.result));
+      } catch (err) {
+        toast('这个文件不是有效的备份（JSON 解析失败）');
+        return;
+      }
+
+      var arr = Array.isArray(data) ? data : (data && Array.isArray(data.records) ? data.records : null);
+      if (!arr) { toast('文件里没找到记录数据'); return; }
+
+      var list = [];
+      for (var i = 0; i < arr.length; i++) {
+        var r = normalize(arr[i]);
+        if (r) {
+          if (!r.id) r.id = 'r' + (r.ts || Date.now()) + Math.random().toString(36).slice(2, 6);
+          list.push(r);
+        }
+      }
+      if (!list.length) { toast('文件里没有可用的记录'); return; }
+
+      impPending = list;
+      $('impInfo').textContent = '已读取 ' + list.length + ' 条记录，现有 ' + records.length + ' 条。';
+      openImp();
+    };
+    reader.onerror = function () { toast('读取文件失败了'); };
+    reader.readAsText(file);
+  });
+
+  $('impMerge').addEventListener('click', function () {
+    var seen = {};
+    for (var i = 0; i < records.length; i++) {
+      var r = records[i];
+      seen[r.id] = true;
+      seen[r.ts + '|' + r.km + '|' + r.fee] = true;      /* 同一条的弱去重 */
+    }
+    var added = 0;
+    for (var j = 0; j < impPending.length; j++) {
+      var n = impPending[j];
+      if (seen[n.id] || seen[n.ts + '|' + n.km + '|' + n.fee]) continue;
+      records.push(n);
+      seen[n.id] = true;
+      seen[n.ts + '|' + n.km + '|' + n.fee] = true;
+      added++;
+    }
+    persist();
+    render();
+    renderStats();
+    closeImp();
+    buzz(12);
+    toast(added ? '已合并 ' + added + ' 条，跳过重复 ' + (impPending.length - added) + ' 条' : '这些记录都已经有了，没有新增');
+    impPending = [];
+  });
+
+  $('impReplace').addEventListener('click', function () {
+    askConfirm('覆盖会用备份里的 ' + impPending.length + ' 条记录，替换掉现在的 ' + records.length + ' 条，原记录不保留。确定吗？', function () {
+      records = impPending.slice();
+      persist();
+      render();
+      renderStats();
+      closeImp();
+      buzz(12);
+      toast('已导入 ' + records.length + ' 条记录');
+      impPending = [];
+    });
+  });
+
+  /* ---------- 主题 ---------- */
+  var savedTheme = null;
+  var savedAccent = null;
+  var savedPlat = null;
+  try {
+    savedTheme = localStorage.getItem(THEME_KEY);
+    savedAccent = localStorage.getItem(ACCENT_KEY);
+    savedPlat = localStorage.getItem(PLAT_KEY);
+  } catch (e) {}
+  if (savedPlat === '私活') savedPlat = '其他';        /* 旧版叫「私活」，兼容一下 */
+  if (PLATS.indexOf(savedPlat) >= 0) plat = savedPlat;
+
+  var ACCENTS = ['orange', 'blue', 'green', 'cyan', 'purple', 'pink'];
+  var themeMode = (savedTheme === 'light' || savedTheme === 'dark') ? savedTheme : 'auto';
+  var accent = ACCENTS.indexOf(savedAccent) >= 0 ? savedAccent : 'orange';
+
+  function sysDark() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+  function isDark() {
+    if (themeMode === 'auto') return sysDark();
+    return themeMode === 'dark';
+  }
+
+  function applyTheme() {
+    var root = document.documentElement;
+    if (themeMode === 'auto') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme', themeMode);
+    Array.prototype.forEach.call($('themeSeg').children, function (b) {
+      b.classList.toggle('on', b.getAttribute('data-t') === themeMode);
+    });
+  }
+
+  function applyAccent() {
+    document.documentElement.setAttribute('data-accent', accent);
+    Array.prototype.forEach.call($('accentRow').children, function (b) {
+      b.classList.toggle('on', b.getAttribute('data-a') === accent);
+    });
+    /* 安卓 Chrome 状态栏跟着主色走 */
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      var hex = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();
+      if (hex) meta.setAttribute('content', hex);
+    }
+  }
+
+  function setTheme(t) {
+    themeMode = (t === 'light' || t === 'dark') ? t : 'auto';
+    try { localStorage.setItem(THEME_KEY, themeMode); } catch (e) {}
+    applyTheme();
+  }
+
+  function setAccent(a) {
+    accent = ACCENTS.indexOf(a) >= 0 ? a : 'orange';
+    try { localStorage.setItem(ACCENT_KEY, accent); } catch (e) {}
+    applyAccent();
+  }
+
+  applyTheme();
+  applyAccent();
+
+  $('themeSeg').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-t]') : null;
+    if (!b) return;
+    buzz(6);
+    setTheme(b.getAttribute('data-t'));
+  });
+
+  $('accentRow').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('button[data-a]') : null;
+    if (!b) return;
+    buzz(6);
+    setAccent(b.getAttribute('data-a'));
+  });
+
+  /* 系统配色变了，跟随模式下自动刷新 */
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var onSys = function () { if (themeMode === 'auto') applyTheme(); };
+    if (mq.addEventListener) mq.addEventListener('change', onSys);
+    else if (mq.addListener) mq.addListener(onSys);
+  }
+
+  /* ---------- 软件更新 ---------- */
+  var SKIP_VER_KEY = 'sj_jz_skip_ver_v1';
+  var updMask = $('updMask'), updBox = $('updBox');
+  var updInfo = null;
+
+  function cmpVer(a, b) {
+    var x = String(a || '').replace(/^v/i, '').split('.');
+    var y = String(b || '').replace(/^v/i, '').split('.');
+    var n = Math.max(x.length, y.length);
+    for (var i = 0; i < n; i++) {
+      var p = parseInt(x[i], 10) || 0;
+      var q = parseInt(y[i], 10) || 0;
+      if (p !== q) return p > q ? 1 : -1;
+    }
+    return 0;
+  }
+
+  function skippedVer() {
+    try { return localStorage.getItem(SKIP_VER_KEY) || ''; } catch (e) { return ''; }
+  }
+  function skipVer(v) {
+    try { localStorage.setItem(SKIP_VER_KEY, v); } catch (e) {}
+  }
+
+  function closeUpd() {
+    updMask.classList.remove('on');
+    updBox.classList.remove('on');
+  }
+
+  function openUpd(info) {
+    updInfo = info;
+    $('updVer').textContent = 'v' + info.version;
+    $('updIntro').textContent = info.force
+      ? '这个版本必须更新后才能继续使用，已有记录不会丢。'
+      : '有新版本可以更新，更新不会影响已有记录。';
+
+    var notes = info.notes;
+    if (!Array.isArray(notes)) notes = notes ? [notes] : [];
+    var html = '';
+    for (var i = 0; i < notes.length; i++) html += '<li>' + esc(notes[i]) + '</li>';
+    $('updNotes').innerHTML = html || '<li>细节优化和问题修复。</li>';
+
+    $('updLater').style.display = info.force ? 'none' : '';
+    $('updNow').textContent = '立即更新';
+
+    updMask.classList.add('on');
+    updBox.classList.add('on');
+  }
+
+  /* 把 version.json 里的相对地址补成绝对地址 */
+  function resolveUpdateUrl(u) {
+    if (!u) return '';
+    if (/^https?:\/\//i.test(u)) return u;
+    if (!UPDATE_URL) return u;
+    var base = UPDATE_URL.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
+    return base + String(u).replace(/^\.?\//, '');
+  }
+
+  /* 取版本信息：安卓壳优先走异步桥（不阻塞主线程），浏览器直接拉 */
+  function fetchVersionInfo() {
+    var bridge = window.TTNative;
+
+    if (bridge && typeof bridge.fetchUpdateAsync === 'function') {
+      return new Promise(function (resolve, reject) {
+        var done = false;
+        var timer = setTimeout(function () { finish(''); }, 9000);
+
+        function finish(raw) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          if (window.__ttUpdResult === finish) window.__ttUpdResult = null;
+          if (!raw || raw.charAt(0) !== '{') { reject(new Error('native fetch failed')); return; }
+          try { resolve(JSON.parse(raw)); } catch (e) { reject(e); }
+        }
+
+        window.__ttUpdResult = finish;
+        try { bridge.fetchUpdateAsync(); } catch (e) { finish(''); }
+      });
+    }
+
+    if (bridge && typeof bridge.fetchUpdate === 'function') {
+      var raw = '';
+      try { raw = bridge.fetchUpdate(); } catch (e) { raw = ''; }
+      if (raw && raw.charAt(0) === '{') {
+        try { return Promise.resolve(JSON.parse(raw)); } catch (e) {}
+      }
+      return Promise.reject(new Error('native fetch failed'));
+    }
+
+    if (typeof fetch !== 'function') return Promise.reject(new Error('no fetch'));
+    var url = UPDATE_URL || './version.json';
+    url += (url.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now();
+    return fetch(url, { cache: 'no-store' }).then(function (res) {
+      if (!res.ok) throw new Error('bad status');
+      return res.json();
+    });
+  }
+
+  var checking = false;
+
+  function checkUpdate(manual) {
+    if (checking) {
+      if (manual) toast('正在检查更新…');
+      return;
+    }
+    var bridge = window.TTNative;
+    var hasNative = bridge && (typeof bridge.fetchUpdateAsync === 'function'
+      || typeof bridge.fetchUpdate === 'function');
+    if (!hasNative && typeof fetch !== 'function') {
+      if (manual) toast('当前环境不支持检查更新');
+      return;
+    }
+    checking = true;
+    if (manual) toast('正在检查更新…');
+    fetchVersionInfo().then(function (info) {
+      checking = false;
+      if (!info || !info.version) throw new Error('bad json');
+      if (cmpVer(info.version, APP_VER) > 0) {
+        if (!manual && !info.force && skippedVer() === info.version) return;
+        openUpd(info);
+      } else if (manual) {
+        toast('当前已是最新版本 v' + APP_VER);
+      }
+    }).catch(function () {
+      checking = false;
+      if (manual) toast('检查更新失败，请检查网络后重试');
+    });
+  }
+
+  /* 立即更新：安卓壳走原生下载安装；浏览器清缓存后跳下载页 */
+  function updateNow() {
+    var btn = $('updNow');
+    var target = updInfo && updInfo.url ? resolveUpdateUrl(updInfo.url) : '';
+
+    var bridge = window.TTNative;
+    if (bridge && typeof bridge.installApk === 'function' && target) {
+      btn.textContent = '正在下载…';
+      btn.disabled = true;
+      var r = '';
+      try { r = bridge.installApk(target); } catch (e) { r = 'fail'; }
+      if (r === 'ok') { toast('开始下载，完成后会自动弹出安装'); return; }
+      btn.textContent = '立即更新';
+      btn.disabled = false;
+      if (r === 'perm') { toast('请允许安装未知应用，再点一次'); return; }
+      toast('内置下载不可用，正在打开下载页');
+      try { window.open(target, '_blank'); } catch (e) {}
+      return;
+    }
+
+    btn.textContent = '更新中…';
+    btn.disabled = true;
+
+    var go = function () {
+      if (target) { location.href = target; return; }
+      location.reload();
+    };
+
+    var dropCache = function () {
+      if (!window.caches || !caches.keys) { go(); return; }
+      caches.keys().then(function (keys) {
+        return Promise.all(keys.map(function (k) { return caches.delete(k); }));
+      }).then(function () { go(); }).catch(go);
+    };
+
+    dropCache();
+  }
+
+  $('updateBtn').addEventListener('click', function () { buzz(6); checkUpdate(true); });
+  $('updClose').addEventListener('click', function () {
+    closeUpd();
+    if (updInfo && !updInfo.force) skipVer(updInfo.version);
+  });
+  $('updLater').addEventListener('click', function () {
+    closeUpd();
+    if (updInfo) skipVer(updInfo.version);
+  });
+  $('updMask').addEventListener('click', function () {
+    if (updInfo && updInfo.force) return;
+    closeUpd();
+    if (updInfo) skipVer(updInfo.version);
+  });
+  $('updNow').addEventListener('click', function () { buzz(10); updateNow(); });
+
+  /* 只在打开 App 时静默检查一次；之后仅在你主动点「软件更新」时才再检查。
+     原来的 visibilitychange 监听会在每次切回前台时都请求一次，网络差时会明显卡顿，已移除。 */
+  setTimeout(function () { checkUpdate(false); }, 1200);
+
+  /* ---------- 关于应用弹窗 ---------- */
+  var aboutMask = $('aboutMask'), aboutBox = $('aboutBox');
+
+  function openAbout() {
+    aboutMask.classList.add('on');
+    aboutBox.classList.add('on');
+    aboutBox.scrollTop = 0;
+  }
+  function closeAbout() {
+    aboutMask.classList.remove('on');
+    aboutBox.classList.remove('on');
+  }
+
+  $('aboutBtn').addEventListener('click', function () { buzz(6); openAbout(); });
+  $('aboutClose').addEventListener('click', closeAbout);
+  $('aboutOk').addEventListener('click', closeAbout);
+  aboutMask.addEventListener('click', closeAbout);
+
+  /* ---------- 启动 ---------- */
+  $('verText').textContent = APP_VER;
+  Array.prototype.forEach.call(document.querySelectorAll('.ver'), function (el) { el.textContent = APP_VER; });
+  records = load();
+  setPlat(plat);
+  render();
+  /* 支持 ?view=stats / ?view=settings 直接进入指定页（调试/截图用） */
+  var startView = 'list';
+  try {
+    var qv = new URLSearchParams(location.search).get('view');
+    if (qv === 'stats' || qv === 'settings') startView = qv;
+  } catch (e) {}
+  switchView(startView);
+
+  /* ---------- 每周自动备份一次到系统「下载」目录（仅 App 内） ---------- */
+  try {
+    if (window.TTNative && typeof window.TTNative.exportData === 'function' && records.length) {
+      var BK_KEY = 'tt_auto_backup_at';
+      var lastBk = Number(localStorage.getItem(BK_KEY) || 0);
+      if (Date.now() - lastBk > 7 * 86400000) {
+        setTimeout(function () {
+          try {
+            var nb = new Date();
+            var pl = { app: 'sj-jz', version: 1, exportedAt: nb.toISOString(), auto: true, records: records };
+            var nm = '天天货运记账-自动备份-' + nb.getFullYear() + pad(nb.getMonth() + 1) + pad(nb.getDate()) + '.json';
+            var rr = window.TTNative.exportData(JSON.stringify(pl), nm);
+            if (rr === 'ok') { localStorage.setItem(BK_KEY, String(Date.now())); track('auto_backup', 'ok'); }
+          } catch (e) {}
+        }, 4000);
+      }
+    }
+  } catch (e) {}
+
+  /* ---------- 安卓外壳桥接：返回键优先关弹层 ---------- */
+  window.__androidBack = function () {
+    try {
+      if (updBox && updBox.classList.contains('on')) {
+        if (updInfo && updInfo.force) return 'block';
+        $('updLater').click(); return 'handled';
+      }
+      if (aboutBox && aboutBox.classList.contains('on')) { closeAbout(); return 'handled'; }
+      if (impBox && impBox.classList.contains('on')) { closeImp(); return 'handled'; }
+      if (sheetEl.classList.contains('on')) { closeSheet(); return 'handled'; }
+      if (view !== 'list') { switchView('list'); return 'handled'; }
+    } catch (e) {}
+    return 'exit';
+  };
+})();
+</script>
+</body>
+</html>

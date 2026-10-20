@@ -1,19 +1,19 @@
 {
-  "version": "1.0.12",
-  "versionCode": 13,
-  "publishedAt": "2026-10-20",
-  "size": "1767 KB",
+  "version": "1.0.13",
+  "versionCode": 14,
+  "publishedAt": "2026-10-21",
+  "size": "1769 KB",
   "force": false,
   "url": "app.apk",
   "notes": [
-    "修复列表无法滚动到底部的问题"
+    "新增页面热更新：修小bug不再需要发新版；每周自动备份记账数据到下载目录"
   ],
   "history": [
+    { "version": "1.0.13", "date": "2026-10-21" },
     { "version": "1.0.12", "date": "2026-10-20" },
     { "version": "1.0.11", "date": "2026-10-20" },
     { "version": "1.0.10", "date": "2026-10-20" },
-    { "version": "1.0.9", "date": "2026-10-20" },
-    { "version": "1.0.8", "date": "2026-10-20" }
+    { "version": "1.0.9", "date": "2026-10-20" }
   ],
   "_说明": {
     "version": "版本号，必须比上一版大（App 靠它判断要不要弹窗）",
