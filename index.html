@@ -133,6 +133,17 @@ body::before{
 }
 .notes li:first-child::before{top:9px}
 
+/* 软件截图 */
+.shots{
+  display:flex;gap:12px;justify-content:center;
+  margin-top:4px;
+}
+.shots img{
+  width:47%;max-width:190px;border-radius:18px;
+  border:1px solid rgba(120,128,140,.22);
+  box-shadow:0 10px 26px rgba(22,30,48,.14);
+}
+
 /* 安装步骤 */
 .steps{margin:0;padding-left:0;list-style:none;counter-reset:s}
 .steps li{
@@ -197,6 +208,14 @@ footer a{color:var(--text3);text-decoration:none}
   <div class="card">
     <h2>本次更新 <em id="noteVer"></em></h2>
     <ul class="notes" id="notes" class="skeleton"><li>正在加载更新说明…</li></ul>
+  </div>
+
+  <div class="card">
+    <h2>软件截图</h2>
+    <div class="shots">
+      <img src="shot-1.png" alt="明细页截图" loading="lazy">
+      <img src="shot-2.png" alt="统计页截图" loading="lazy">
+    </div>
   </div>
 
   <div class="card">
