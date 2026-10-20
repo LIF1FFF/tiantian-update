@@ -10,11 +10,22 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="天天货运记账">
-<meta name="page-ver" content="1.0.14g">
+<meta name="page-ver" content="1.0.14h">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
+<script>
+/* 首屏防闪烁：在样式计算前就定下深浅色，auto 时跟随系统 */
+(function () {
+  try {
+    var t = localStorage.getItem('sj_jz_theme_v1');
+    var dark = t === 'dark' || (t !== 'light' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  } catch (e) {}
+})();
+</script>
 <script>
 /* 运行环境开关：?native=1 由安卓外壳注入，用于状态栏 / 底栏安全区适配 */
 (function () {
@@ -1576,8 +1587,10 @@ html[data-theme="dark"] .tabbar{background:rgba(20,23,28,.94)}
 
   function applyTheme() {
     var root = document.documentElement;
-    if (themeMode === 'auto') root.removeAttribute('data-theme');
-    else root.setAttribute('data-theme', themeMode);
+    // auto 也解析成实际主题写进 data-theme。
+    // 否则 html[data-theme="dark"] 那一批配色（底栏、平台标签、收支色）在「跟随系统」时会全部失效。
+    var eff = (themeMode === 'auto') ? (sysDark() ? 'dark' : 'light') : themeMode;
+    root.setAttribute('data-theme', eff);
     Array.prototype.forEach.call($('themeSeg').children, function (b) {
       b.classList.toggle('on', b.getAttribute('data-t') === themeMode);
     });
