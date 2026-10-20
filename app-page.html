@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="天天货运记账">
-<meta name="page-ver" content="1.0.14e">
+<meta name="page-ver" content="1.0.14f">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -25,19 +25,19 @@
 </script>
 <style>
 :root{
-  --bg:#f2f3f6; --card:#ffffff; --text:#14161a; --text2:#646b78; --text3:#9aa1ad;
+  --bg:#f2f3f6; --bg-rgb:242,243,246; --card:#ffffff; --text:#14161a; --text2:#646b78; --text3:#9aa1ad;
   --line:#e8eaee; --brand:#ff6a00; --brand2:#ff8a3d; --brand3:#f04e00;
   --brand-rgb:255,106,0; --brand2-rgb:255,138,61; --brand3-rgb:240,78,0;
   --hl:#ff6a00; --ym:#2f6bff; --sh:#12a594;
   --shadow:0 6px 18px rgba(20,22,26,.07); --shadow-lg:0 14px 34px rgba(20,22,26,.14);
 }
 @media (prefers-color-scheme: dark){
-  :root{ --bg:#0e1013; --card:#191c21; --text:#f2f3f5; --text2:#a2a9b4; --text3:#767d88;
+  :root{ --bg:#0e1013; --bg-rgb:14,16,19; --card:#191c21; --text:#f2f3f5; --text2:#a2a9b4; --text3:#767d88;
          --line:#262a31; --shadow:0 6px 18px rgba(0,0,0,.4); --shadow-lg:0 14px 34px rgba(0,0,0,.55); }
 }
-html[data-theme="light"]{ --bg:#f2f3f6; --card:#ffffff; --text:#14161a; --text2:#646b78; --text3:#9aa1ad;
+html[data-theme="light"]{ --bg:#f2f3f6; --bg-rgb:242,243,246; --card:#ffffff; --text:#14161a; --text2:#646b78; --text3:#9aa1ad;
   --line:#e8eaee; --shadow:0 6px 18px rgba(20,22,26,.07); --shadow-lg:0 14px 34px rgba(20,22,26,.14); }
-html[data-theme="dark"]{ --bg:#0e1013; --card:#191c21; --text:#f2f3f5; --text2:#a2a9b4; --text3:#767d88;
+html[data-theme="dark"]{ --bg:#0e1013; --bg-rgb:14,16,19; --card:#191c21; --text:#f2f3f5; --text2:#a2a9b4; --text3:#767d88;
   --line:#262a31; --shadow:0 6px 18px rgba(0,0,0,.4); --shadow-lg:0 14px 34px rgba(0,0,0,.55); }
 
 /* ---------- 主题色（设置页可切换） ---------- */
@@ -68,9 +68,15 @@ body{
 .wrap{max-width:520px;margin:0 auto;padding:0 16px}
 
 /* ---------- 顶栏 ---------- */
+/* 顶栏吸顶：滚动时标题固定在顶部，背景用半透明毛玻璃兜底 */
 .topbar{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:calc(14px + var(--sat, env(safe-area-inset-top))) 0 12px;
+  padding:calc(14px + var(--sat, env(safe-area-inset-top))) 16px 12px;
+  margin:0 -16px;
+  position:sticky;top:0;z-index:30;
+  background:rgba(var(--bg-rgb),.92);
+  -webkit-backdrop-filter:saturate(180%) blur(12px);
+  backdrop-filter:saturate(180%) blur(12px);
 }
 .brand{min-width:0}
 .brand b{display:block;font-size:17.5px;font-weight:700;letter-spacing:.01em;white-space:nowrap}
